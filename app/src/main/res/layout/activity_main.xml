@@ -1,17 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:padding="16dp"
-    android:layout_width="match_parent" android:layout_height="match_parent">
-    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
-        <Button android:id="@+id/btn_settings" android:text="Settings" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-        <Button android:id="@+id/btn_back" android:text="⏪" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-        <Button android:id="@+id/btn_play" android:text="▶" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-        <Button android:id="@+id/btn_pause" android:text="⏸" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-        <Button android:id="@+id/btn_next" android:text="⏩" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    android:orientation="vertical" 
+    android:padding="16dp"
+    android:background="#0A192F" 
+    android:layout_width="match_parent" 
+    android:layout_height="match_parent">
+    
+    <LinearLayout android:orientation="horizontal" 
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical">
+        
+        <Button android:id="@+id/btn_settings" 
+            android:text="⚙️" 
+            android:textSize="18sp"
+            android:backgroundTint="#172A45"
+            android:textColor="#FFFFFF"
+            android:layout_width="wrap_content" 
+            android:layout_height="wrap_content"/>
+            
+        <View android:layout_width="0dp" android:layout_weight="1" android:layout_height="1dp"/>
+        
+        <Button android:id="@+id/btn_back" 
+            android:text="⏪" 
+            android:backgroundTint="#172A45"
+            android:textColor="#FFFFFF"
+            android:layout_width="wrap_content" 
+            android:layout_height="wrap_content"/>
+            
+        <Button android:id="@+id/btn_play" 
+            android:text="▶" 
+            android:backgroundTint="#172A45"
+            android:textColor="#FFFFFF"
+            android:layout_width="wrap_content" 
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="4dp"/>
+            
+        <Button android:id="@+id/btn_pause" 
+            android:text="⏸" 
+            android:backgroundTint="#172A45"
+            android:textColor="#FFFFFF"
+            android:layout_width="wrap_content" 
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="4dp"/>
+            
+        <Button android:id="@+id/btn_next" 
+            android:text="⏩" 
+            android:backgroundTint="#172A45"
+            android:textColor="#FFFFFF"
+            android:layout_width="wrap_content" 
+            android:layout_height="wrap_content"/>
     </LinearLayout>
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <TextView android:id="@+id/lyrics" android:textSize="20sp" android:padding="16dp"
-            android:lineSpacingMultiplier="1.4"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    
+    <ScrollView android:layout_width="match_parent" 
+        android:layout_height="0dp" 
+        android:layout_weight="1"
+        android:layout_marginTop="24dp">
+        
+        <TextView android:id="@+id/lyrics" 
+            android:textSize="24sp" 
+            android:textColor="#CCD6F6"
+            android:padding="16dp"
+            android:lineSpacingMultiplier="1.5"
+            android:gravity="center"
+            android:layout_width="match_parent" 
+            android:layout_height="wrap_content"/>
     </ScrollView>
 </LinearLayout>
