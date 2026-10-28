@@ -58,7 +58,7 @@
         android:layout_marginTop="24dp">
         
         <TextView android:id="@+id/lyrics" 
-            android:textSize="24sp" 
+            android:textSize="32sp" 
             android:textColor="#CCD6F6"
             android:padding="16dp"
             android:lineSpacingMultiplier="1.5"
