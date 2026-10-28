@@ -18,8 +18,10 @@ public class PlaybackService extends Service {
         super.onCreate();
         music = new MusicPlayer(this);
         tts = new TtsEngine(this);
-        NotificationChannel ch = new NotificationChannel(CH,"Playback",NotificationManager.IMPORTANCE_LOW);
-        getSystemService(NotificationManager.class).createNotificationChannel(ch);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel ch = new NotificationChannel(CH,"Playback",NotificationManager.IMPORTANCE_LOW);
+            getSystemService(NotificationManager.class).createNotificationChannel(ch);
+        }
     }
 
     @Override public int onStartCommand(Intent i, int f, int s) {
@@ -85,15 +87,26 @@ public class PlaybackService extends Service {
     private Notification notif() {
         Intent o = new Intent(this, MainActivity.class);
         PendingIntent pi = PendingIntent.getActivity(this,0,o,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
-        return new Notification.Builder(this, CH)
+        
+        Notification.Builder builder;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder = new Notification.Builder(this, CH);
+        } else {
+            builder = new Notification.Builder(this);
+        }
+
+        return builder
             .setContentTitle("Build Your Spirit").setContentText("Confession in progress")
-            .setSmallIcon(android.R.drawable.ic_media_play).setContentIntent(pi).setOngoing(true)
+            // Use a system-safe icon that guarantees no crashes
+            .setSmallIcon(android.R.drawable.ic_btn_speak_now) 
+            .setContentIntent(pi).setOngoing(true)
             .addAction(new Notification.Action.Builder(null,"Back", act(ACTION_BACK)).build())
             .addAction(new Notification.Action.Builder(null, paused?"Play":"Pause",
                 act(paused?ACTION_PLAY:ACTION_PAUSE)).build())
             .addAction(new Notification.Action.Builder(null,"Next", act(ACTION_NEXT)).build())
             .build();
     }
+    
     private PendingIntent act(String a) {
         Intent i = new Intent(this, PlaybackService.class).setAction(a);
         return PendingIntent.getService(this,a.hashCode(),i,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
@@ -105,4 +118,4 @@ public class PlaybackService extends Service {
         super.onDestroy();
     }
     @Override public IBinder onBind(Intent i) { return null; }
-          }
+}
