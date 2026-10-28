@@ -1,10 +1,17 @@
 package com.buildyourspirit.app;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.BackgroundColorSpan;
@@ -18,6 +25,21 @@ public class MainActivity extends Activity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_main);
+        
+        // Request Permissions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            if (am != null && !am.canScheduleExactAlarms()) {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                startActivity(intent);
+            }
+        }
+
         lyrics = findViewById(R.id.lyrics);
         findViewById(R.id.btn_settings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         findViewById(R.id.btn_play).setOnClickListener(v -> send(PlaybackService.ACTION_PLAY));
@@ -58,8 +80,13 @@ public class MainActivity extends Activity {
     }
 
     private void send(String a) {
-        Intent i = new Intent(this, PlaybackService.class).setAction(a);
-        if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i);
+        try {
+            Intent i = new Intent(this, PlaybackService.class).setAction(a);
+            if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i);
+        } catch (Exception e) {
+            // Prevents crash if the app is in the background and can't start the service
+            e.printStackTrace();
+        }
     }
 
     @Override protected void onDestroy() { h.removeCallbacksAndMessages(null); super.onDestroy(); }
