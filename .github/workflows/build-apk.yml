@@ -45,7 +45,6 @@ jobs:
               
               sourceSets {
                   main {
-                      // Bundles everything in res/ so the MP3s can be found
                       assets.srcDirs = ['src/main/assets', 'src/main/res']
                   }
               }
@@ -54,8 +53,8 @@ jobs:
                   applicationId "com.buildyourspirit.app"
                   minSdk 26
                   targetSdk 34
-                  versionCode \${{ github.run_number }}
-                  versionName "1.0.\${{ github.run_number }}"
+                  versionCode ${{ github.run_number }}
+                  versionName "1.0.${{ github.run_number }}"
               }
               compileOptions {
                   sourceCompatibility JavaVersion.VERSION_17
@@ -73,14 +72,14 @@ jobs:
       
       - uses: actions/upload-artifact@v4
         with:
-          name: BuildYourSpirit-\${{ github.run_number }}
+          name: BuildYourSpirit-${{ github.run_number }}
           path: app/build/outputs/apk/debug/app-debug.apk
           
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.\${{ github.run_number }}
-          name: Build Your Spirit v1.0.\${{ github.run_number }}
+          tag_name: v1.0.${{ github.run_number }}
+          name: Build Your Spirit v1.0.${{ github.run_number }}
           files: app/build/outputs/apk/debug/app-debug.apk
           generate_release_notes: true
         env:
-          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
