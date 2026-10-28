@@ -19,11 +19,47 @@
         android:textColor="#FFFFFF"
         android:layout_width="match_parent" 
         android:layout_height="wrap_content"/>
-        
-    <Button android:id="@+id/btn_music" 
-        android:text="Music" 
+
+    <TextView android:text="Background Music"
+        android:textColor="#64FFDA"
+        android:textSize="14sp"
+        android:paddingTop="12dp"
+        android:paddingBottom="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <Button android:id="@+id/btn_download_prayer" 
+        android:text="🌐 Find Prayer Instrumentals" 
         android:backgroundTint="#172A45"
-        android:textColor="#FFFFFF"
+        android:textColor="#CCD6F6"
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content"/>
+
+    <Button android:id="@+id/btn_download_worship" 
+        android:text="🌐 Find Worship Instrumentals" 
+        android:backgroundTint="#172A45"
+        android:textColor="#CCD6F6"
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content"/>
+
+    <Button android:id="@+id/btn_download_tongues" 
+        android:text="🌐 Find Praying in Tongues" 
+        android:backgroundTint="#172A45"
+        android:textColor="#CCD6F6"
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content"/>
+
+    <Button android:id="@+id/btn_pick_music" 
+        android:text="🎵 Select Music From Phone" 
+        android:backgroundTint="#172A45"
+        android:textColor="#64FFDA"
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content"/>
+        
+    <Button android:id="@+id/btn_auto_recent" 
+        android:text="⚡ Auto-Load Recently Downloaded" 
+        android:backgroundTint="#172A45"
+        android:textColor="#64FFDA"
         android:layout_width="match_parent" 
         android:layout_height="wrap_content"/>
         
