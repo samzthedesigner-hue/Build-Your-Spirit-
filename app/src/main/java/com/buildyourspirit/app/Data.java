@@ -59,8 +59,11 @@ public class Data {
         private static SharedPreferences sp(Context c) {
             return c.getSharedPreferences("bys", Context.MODE_PRIVATE);
         }
-        public static String musicTrack(Context c) { return sp(c).getString("music", "instrumental"); }
+        public static String musicTrack(Context c) { return sp(c).getString("music", "none"); }
         public static void setMusicTrack(Context c, String t) { sp(c).edit().putString("music", t).apply(); }
+        public static String musicDeviceUri(Context c) { return sp(c).getString("music_uri", null); }
+        public static void setMusicDeviceUri(Context c, String uri) { sp(c).edit().putString("music_uri", uri).apply(); }
+        
         public static long lastCheck(Context c) { return sp(c).getLong("lastCheck", 0); }
         public static void setLastCheck(Context c, long t) { sp(c).edit().putLong("lastCheck", t).apply(); }
         public static long updateSeen(Context c) { return sp(c).getLong("updateSeen", 0); }
@@ -72,4 +75,4 @@ public class Data {
         public static long currentConfessionId(Context c) { return sp(c).getLong("curConf", -1); }
         public static void setCurrentConfessionId(Context c, long id) { sp(c).edit().putLong("curConf", id).apply(); }
     }
-  }
+}
