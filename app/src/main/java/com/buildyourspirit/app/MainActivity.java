@@ -3,6 +3,7 @@ package com.buildyourspirit.app;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -83,10 +84,17 @@ public class MainActivity extends Activity {
         try {
             Intent i = new Intent(this, PlaybackService.class).setAction(a);
             if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            // CAPTURE THE CRASH AND SHOW IT ON SCREEN
+            runOnUiThread(() -> {
+                new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Playback Error")
+                    .setMessage("The app failed to start the service: \n\n" + e.getMessage() + "\n\n" + e.toString())
+                    .setPositiveButton("OK", null)
+                    .show();
+            });
         }
     }
 
     @Override protected void onDestroy() { h.removeCallbacksAndMessages(null); super.onDestroy(); }
-    }
+}
