@@ -13,66 +13,51 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.widget.TextView;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class MainActivity extends Activity {
     private TextView lyrics;
     private final Handler h = new Handler(Looper.getMainLooper());
+    private static final String CRASH_FILE = "last_crash.txt";
 
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         
-        // 1. SET THE CRASH CATCHER IMMEDIATELY
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(Thread thread, Throwable e) {
-                try {
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    e.printStackTrace(pw);
-                    String stackTrace = sw.toString();
-
-                    // Save error to a file so we can read it on next launch
-                    File file = new File(getFilesDir(), "crash_log.txt");
-                    FileOutputStream fos = new FileOutputStream(file);
-                    fos.write(stackTrace.getBytes());
-                    fos.close();
-                } catch (Exception ignored) {}
-
-                // Kill the app
-                android.os.Process.killProcess(android.os.Process.myPid());
-                System.exit(1);
-            }
+        // 1. Set the crash catcher
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            try {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                throwable.printStackTrace(pw);
+                try (FileOutputStream fos = openFileOutput(CRASH_FILE, MODE_PRIVATE)) {
+                    fos.write(sw.toString().getBytes(StandardCharsets.UTF_8));
+                }
+            } catch (Exception ignored) {}
+            android.os.Process.killProcess(android.os.Process.myPid());
+            System.exit(1);
         });
 
         setContentView(R.layout.activity_main);
 
-        // 2. CHECK IF WE CRASHED LAST TIME AND SHOW THE ERROR
-        File crashFile = new File(getFilesDir(), "crash_log.txt");
+        // 2. Show crash log if it exists
+        File crashFile = new File(getFilesDir(), CRASH_FILE);
         if (crashFile.exists()) {
             try {
-                FileInputStream fis = new FileInputStream(crashFile);
                 byte[] data = new byte[(int) crashFile.length()];
+                FileInputStream fis = new FileInputStream(crashFile);
                 fis.read(data);
                 fis.close();
-                String error = new String(data);
-                crashFile.delete(); // Delete so it doesn't show again
-
+                crashFile.delete();
+                
                 new AlertDialog.Builder(this)
-                        .setTitle("Crash Cause Found!")
-                        .setMessage(error)
-                        .setPositiveButton("OK", null)
-                        .setCancelable(false)
-                        .show();
+                    .setTitle("Previous Crash Cause")
+                    .setMessage(new String(data, StandardCharsets.UTF_8))
+                    .setPositiveButton("OK", null).show();
             } catch (Exception ignored) {}
         }
 
-        // 3. PERMISSIONS & UI SETUP
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
@@ -139,7 +124,6 @@ public class MainActivity extends Activity {
             Intent i = new Intent(this, PlaybackService.class).setAction(a);
             if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i);
         } catch (final Exception e) {
-            // Catch immediate start failures and show on screen
             runOnUiThread(() -> {
                 new AlertDialog.Builder(MainActivity.this)
                     .setTitle("Play Error")
