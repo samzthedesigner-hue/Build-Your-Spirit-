@@ -3,6 +3,7 @@ package com.buildyourspirit.app;
 import android.app.*;
 import android.content.Intent;
 import android.os.*;
+import java.io.*;
 import java.util.List;
 
 public class PlaybackService extends Service {
@@ -14,8 +15,27 @@ public class PlaybackService extends Service {
     private List<Data.Confession> list; private int idx=0;
     private boolean paused=false; private long windowEndAt=Long.MAX_VALUE;
 
+    // Global crash catcher for the Service
+    private final Thread.UncaughtExceptionHandler crashHandler = (thread, e) -> {
+        try {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            String stackTrace = sw.toString();
+            
+            // Save error to file so MainActivity can read it
+            File file = new File(getFilesDir(), "crash_log.txt");
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(stackTrace.getBytes());
+            fos.close();
+        } catch (Exception ignored) {}
+        System.exit(1);
+    };
+
     @Override public void onCreate() {
         super.onCreate();
+        Thread.setDefaultUncaughtExceptionHandler(crashHandler); // Set the catcher
+        
         music = new MusicPlayer(this);
         tts = new TtsEngine(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -97,7 +117,6 @@ public class PlaybackService extends Service {
 
         return builder
             .setContentTitle("Build Your Spirit").setContentText("Confession in progress")
-            // Use a system-safe icon that guarantees no crashes
             .setSmallIcon(android.R.drawable.ic_btn_speak_now) 
             .setContentIntent(pi).setOngoing(true)
             .addAction(new Notification.Action.Builder(null,"Back", act(ACTION_BACK)).build())
