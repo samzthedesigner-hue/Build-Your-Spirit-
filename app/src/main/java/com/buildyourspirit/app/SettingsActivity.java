@@ -4,6 +4,7 @@ import android.app.*;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -114,22 +115,49 @@ public class SettingsActivity extends Activity {
 
     private void edit(Data.Confession c) {
         ScrollView sc = new ScrollView(this);
-        LinearLayout ll = new LinearLayout(this); ll.setOrientation(LinearLayout.VERTICAL);
+        sc.setBackgroundColor(Color.parseColor("#0A192F")); // Dark background for dialog
+        
+        LinearLayout ll = new LinearLayout(this); 
+        ll.setOrientation(LinearLayout.VERTICAL);
+        ll.setPadding(32, 32, 32, 32);
         sc.addView(ll);
-        EditText t = new EditText(this); t.setHint("Title"); t.setTextColor(0xFFFFFFFF); t.setHintTextColor(0xFF8892B0);
-        EditText body = new EditText(this); body.setHint("Confessions / affirmations..."); body.setMinLines(6); body.setTextColor(0xFFFFFFFF); body.setHintTextColor(0xFF8892B0);
+        
+        EditText t = new EditText(this); 
+        t.setHint("Title"); 
+        t.setTextColor(Color.WHITE); 
+        t.setHintTextColor(Color.GRAY);
+        
+        EditText body = new EditText(this); 
+        body.setHint("Confessions / affirmations..."); 
+        body.setMinLines(6); 
+        body.setTextColor(Color.WHITE); 
+        body.setHintTextColor(Color.GRAY);
+        
         if (c != null) { t.setText(c.title); body.setText(c.body); }
-        ll.addView(t); ll.addView(body);
+        ll.addView(t); 
+        ll.addView(body);
 
         final long[] window = { c != null && c.windowStart != null ? c.windowStart : 0,
                                 c != null && c.windowEnd != null ? c.windowEnd : 0 };
-        Button pickStart = new Button(this); pickStart.setText("Set window start (optional)"); pickStart.setTextColor(0xFFFFFFFF);
-        Button pickEnd = new Button(this); pickEnd.setText("Set window end (optional)"); pickEnd.setTextColor(0xFFFFFFFF);
+                                
+        Button pickStart = new Button(this); 
+        pickStart.setText("Set window start (optional)"); 
+        pickStart.setTextColor(Color.WHITE);
+        pickStart.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF172A45));
+        
+        Button pickEnd = new Button(this); 
+        pickEnd.setText("Set window end (optional)"); 
+        pickEnd.setTextColor(Color.WHITE);
+        pickEnd.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF172A45));
+        
         pickStart.setOnClickListener(v -> pickDateTime(window[0], ms -> window[0] = ms));
         pickEnd.setOnClickListener(v -> pickDateTime(window[1], ms -> window[1] = ms));
-        ll.addView(pickStart); ll.addView(pickEnd);
+        ll.addView(pickStart); 
+        ll.addView(pickEnd);
 
-        new AlertDialog.Builder(this).setTitle(c == null ? "New Confession" : "Edit Confession")
+        // Use a dark themed AlertDialog
+        AlertDialog dialog = new AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
+            .setTitle(c == null ? "New Confession" : "Edit Confession")
             .setView(sc)
             .setPositiveButton("Save", (d, w) -> {
                 Data.Confession x = c != null ? c : new Data.Confession();
@@ -144,7 +172,9 @@ public class SettingsActivity extends Activity {
             .setNeutralButton("Delete", (d, w) -> {
                 if (c != null) { Data.delete(this, c.id); Scheduler.scheduleAll(this); reload(); }
             })
-            .setNegativeButton("Cancel", null).show();
+            .setNegativeButton("Cancel", null).create();
+            
+        dialog.show();
     }
 
     interface MsPick { void onPick(long ms); }
@@ -161,6 +191,10 @@ public class SettingsActivity extends Activity {
     }
 
     private void view(Data.Confession c) {
-        new AlertDialog.Builder(this).setTitle(c.title).setMessage(c.body).setPositiveButton("Close", null).show();
+        new AlertDialog.Builder(this)
+            .setTitle(c.title)
+            .setMessage(c.body)
+            .setPositiveButton("Close", null)
+            .show();
     }
 }
