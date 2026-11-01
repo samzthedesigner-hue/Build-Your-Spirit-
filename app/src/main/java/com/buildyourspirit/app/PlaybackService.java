@@ -27,6 +27,7 @@ public class PlaybackService extends Service {
     private long windowEndAt=Long.MAX_VALUE;
     private boolean foregroundStarted = false;
     private boolean destroyed = false;
+    private boolean ttsReady = false;
 
     @Override public void onCreate() {
         super.onCreate();
@@ -45,7 +46,9 @@ public class PlaybackService extends Service {
         // Initialize TTS on the worker thread
         worker.post(() -> {
             tts = new TtsEngine(this);
-            tts.init(() -> {});
+            tts.init(() -> {
+                ttsReady = true;
+            });
         });
     }
 
@@ -95,8 +98,18 @@ public class PlaybackService extends Service {
             Data.Prefs.setCurrentConfessionId(this, c.id);
             
             prepareMusic();
-            readCurrent();
+            waitForTtsAndRead();
         });
+    }
+
+    private void waitForTtsAndRead() {
+        if (paused || destroyed) return;
+        if (ttsReady) {
+            readCurrent();
+        } else {
+            // Wait 500ms and check again if TTS is ready
+            worker.postDelayed(this::waitForTtsAndRead, 500);
+        }
     }
 
     private void readCurrent() {
