@@ -1,6 +1,9 @@
 package com.buildyourspirit.app;
 
 import android.content.Context;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
+import android.media.AudioManager;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.speech.tts.TextToSpeech;
@@ -20,6 +23,7 @@ public final class TtsEngine {
     private final HandlerThread ttsThread;
     private final Handler handler;
     private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final AudioManager audioManager;
 
     private TextToSpeech textToSpeech;
     private boolean initialized = false;
@@ -30,6 +34,7 @@ public final class TtsEngine {
 
     public TtsEngine(Context context) {
         appContext = context.getApplicationContext();
+        audioManager = (AudioManager) appContext.getSystemService(Context.AUDIO_SERVICE);
         ttsThread = new HandlerThread("BuildYourSpirit-TTS");
         ttsThread.start();
         handler = new Handler(ttsThread.getLooper());
@@ -40,13 +45,10 @@ public final class TtsEngine {
             if (closed.get()) return;
 
             try {
-                // Use the default engine. If the phone has no engine (like some Realme/OPPO models),
-                // the status callback will return ERROR, and we will safely handle it.
                 textToSpeech = new TextToSpeech(appContext, status -> handler.post(() -> {
                     if (closed.get()) return;
 
                     if (status != TextToSpeech.SUCCESS) {
-                        // TTS failed to initialize (no engine installed or system restriction)
                         initialized = false;
                         if (onReady != null) onReady.run();
                         return;
@@ -54,12 +56,10 @@ public final class TtsEngine {
 
                     int r = textToSpeech.setLanguage(Locale.UK);
                     if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        // UK English not available, try generic English
                         r = textToSpeech.setLanguage(Locale.ENGLISH);
                     }
                     
                     if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        // Even generic English is not available
                         initialized = false;
                         if (onReady != null) onReady.run();
                         return;
@@ -108,7 +108,6 @@ public final class TtsEngine {
 
         handler.post(() -> {
             if (closed.get() || !initialized || textToSpeech == null) {
-                // If TTS is not ready, immediately tell the caller it's done
                 if (cb != null) cb.onDone();
                 return;
             }
@@ -119,7 +118,20 @@ public final class TtsEngine {
             currentWords = cleanedText.split(" ");
 
             try {
-                int result = textToSpeech.speak(cleanedText, TextToSpeech.QUEUE_FLUSH, null, "confession_" + System.nanoTime());
+                // FORCE AUDIO FOCUS (Bypasses Realme background restrictions)
+                if (audioManager != null) {
+                    AudioAttributes attrs = new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .build();
+                    AudioFocusRequest focusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                        .setAudioAttributes(attrs)
+                        .build();
+                    audioManager.requestAudioFocus(focusRequest);
+                }
+
+                // Use QUEUE_ADD to prevent the system from cancelling the speech instantly
+                int result = textToSpeech.speak(cleanedText, TextToSpeech.QUEUE_ADD, null, "confession_" + System.nanoTime());
                 if (result == TextToSpeech.ERROR && cb != null) cb.onDone();
             } catch (Exception e) {
                 if (cb != null) cb.onDone();
@@ -131,6 +143,7 @@ public final class TtsEngine {
         handler.post(() -> {
             if (!closed.get() && textToSpeech != null) {
                 textToSpeech.stop();
+                if (audioManager != null) audioManager.abandonAudioFocus(null);
             }
         });
     }
@@ -145,6 +158,7 @@ public final class TtsEngine {
                     textToSpeech.shutdown();
                     textToSpeech = null;
                 }
+                if (audioManager != null) audioManager.abandonAudioFocus(null);
             } catch (Exception ignored) {}
             finally {
                 initialized = false;
