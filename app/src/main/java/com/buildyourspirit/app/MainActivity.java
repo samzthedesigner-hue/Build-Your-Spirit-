@@ -25,7 +25,6 @@ public class MainActivity extends Activity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         
-        // 1. Set the crash catcher
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             try {
                 StringWriter sw = new StringWriter();
@@ -41,7 +40,6 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.activity_main);
 
-        // 2. Show crash log if it exists
         File crashFile = new File(getFilesDir(), CRASH_FILE);
         if (crashFile.exists()) {
             try {
