@@ -40,18 +40,31 @@ public final class TtsEngine {
             if (closed.get()) return;
 
             try {
+                // Use the default engine. If the phone has no engine (like some Realme/OPPO models),
+                // the status callback will return ERROR, and we will safely handle it.
                 textToSpeech = new TextToSpeech(appContext, status -> handler.post(() -> {
                     if (closed.get()) return;
 
                     if (status != TextToSpeech.SUCCESS) {
-                        if (onReady != null) onReady.run(); // Still call ready so service doesn't hang
+                        // TTS failed to initialize (no engine installed or system restriction)
+                        initialized = false;
+                        if (onReady != null) onReady.run();
                         return;
                     }
 
                     int r = textToSpeech.setLanguage(Locale.UK);
                     if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        textToSpeech.setLanguage(Locale.ENGLISH);
+                        // UK English not available, try generic English
+                        r = textToSpeech.setLanguage(Locale.ENGLISH);
                     }
+                    
+                    if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        // Even generic English is not available
+                        initialized = false;
+                        if (onReady != null) onReady.run();
+                        return;
+                    }
+
                     textToSpeech.setSpeechRate(0.85f);
                     textToSpeech.setPitch(0.95f);
                     
@@ -80,9 +93,14 @@ public final class TtsEngine {
                     if (onReady != null) onReady.run();
                 }));
             } catch (Exception e) {
+                initialized = false;
                 if (onReady != null) onReady.run();
             }
         });
+    }
+
+    public boolean isReady() {
+        return initialized;
     }
 
     public void speak(String text, Callbacks cb) {
@@ -90,6 +108,7 @@ public final class TtsEngine {
 
         handler.post(() -> {
             if (closed.get() || !initialized || textToSpeech == null) {
+                // If TTS is not ready, immediately tell the caller it's done
                 if (cb != null) cb.onDone();
                 return;
             }
