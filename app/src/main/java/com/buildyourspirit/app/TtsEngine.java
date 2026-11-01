@@ -44,7 +44,7 @@ public final class TtsEngine {
                     if (closed.get()) return;
 
                     if (status != TextToSpeech.SUCCESS) {
-                        if (onReady != null) onReady.run();
+                        if (onReady != null) onReady.run(); // Still call ready so service doesn't hang
                         return;
                     }
 
